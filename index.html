@@ -263,11 +263,13 @@
   .miniBtn.danger{border-color:var(--danger); color:var(--danger);}
   .miniBtn.danger:hover{background:rgba(255,56,96,0.1);}
   .miniBtn:disabled{opacity:0.3; cursor:not-allowed;}
-  textarea{
+  textarea, .panelInput{
     width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
-    padding:12px; font-family:var(--font-mono); font-size:13px; min-height:80px; resize:vertical;
+    padding:12px; font-family:var(--font-mono); font-size:13px; resize:vertical;
   }
-  textarea:focus{outline:none; border-color:var(--cyan);}
+  textarea{min-height:80px;}
+  .panelInput{min-height:44px; resize:none;}
+  textarea:focus, .panelInput:focus{outline:none; border-color:var(--cyan);}
   /* Category / site cards */
   .catCard{
     border:1px solid var(--line); background:var(--bg-panel);
@@ -278,15 +280,26 @@
     color:var(--cyan);
   }
   .siteLink{
-    display:block; padding:8px 0; border-bottom:1px solid var(--line);
-    font-size:13px; color:var(--text); text-decoration:none;
+    display:block;
+    border:1px solid var(--line);
+    background:var(--bg-panel);
+    padding:14px 16px;
+    margin-bottom:10px;
+    font-size:13px;
+    color:var(--text);
+    text-decoration:none;
+    transition:.15s;
   }
-  .siteLink:last-child{border-bottom:none;}
-  .siteLink:hover{color:var(--magenta);}
-  .siteLink .url{font-size:11px; color:var(--text-dim); display:block; margin-top:2px;}
-  .inlineForm{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
-  .inlineForm input{flex:1; min-width:140px;}
-  .inlineForm .btn{padding:11px 18px;}
+  .siteLink:hover{
+    border-color:var(--magenta);
+    color:var(--magenta);
+    box-shadow:0 0 18px rgba(255,46,196,0.12);
+  }
+  .siteLink .url{font-size:11px; color:var(--text-dim); display:block; margin-top:4px;}
+  .siteLink:hover .url{color:var(--text-dim);}
+  .inlineForm{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; align-items:stretch;}
+  .inlineForm .panelInput{flex:1; min-width:140px;}
+  .inlineForm .btn{padding:11px 18px; align-self:stretch;}
   footer{
     position:relative; z-index:5; padding:26px 5vw; border-top:1px solid var(--line);
     color:var(--text-dim); font-size:11px; letter-spacing:1px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
@@ -340,6 +353,7 @@
   <div class="appTabs" id="appTabs">
     <button class="active" data-pane="dashboard">Dashboard</button>
     <!-- Dynamic category tabs injected here -->
+    <button data-pane="account" id="accountTabBtn">Account</button>
     <button data-pane="owner" id="ownerTabBtn" style="display:none;">Owner Panel</button>
   </div>
 
@@ -357,6 +371,26 @@
   </div>
 
   <!-- Dynamic category panes injected here -->
+
+  <div class="appPane" id="pane-account">
+    <div class="panelTitle">Account</div>
+    <div class="row">
+      <div class="who">
+        <span class="email" id="accountEmail"></span>
+        <span class="sub" id="accountRoleSub">your session</span>
+      </div>
+      <span id="accountRoleBadge"></span>
+    </div>
+
+    <div class="panelTitle" style="margin-top:34px;">Delete Account</div>
+    <p class="sub" style="margin-bottom:14px;">This permanently removes your access and deletes your profile from the nexus. You will need to request access again if you return. The owner account cannot be deleted.</p>
+    <div class="field" style="max-width:360px;">
+      <label>CONFIRM PASSWORD</label>
+      <input type="password" class="panelInput" id="deletePassword" placeholder="Enter your password to confirm">
+    </div>
+    <div class="formMsg" id="deleteMsg" style="min-height:18px;"></div>
+    <button class="btn btn-ghost" id="deleteAccountBtn" style="border-color:var(--danger); color:var(--danger); margin-top:6px;">DELETE MY ACCOUNT</button>
+  </div>
 
   <div class="appPane" id="pane-owner">
     <div class="panelTitle">Owner Control — full registry &amp; tools</div>
@@ -376,7 +410,7 @@
     <div class="panelTitle" style="margin-top:34px;">Categories &amp; Sites</div>
     <p class="sub" style="margin-bottom:12px;">Create categories that appear as tabs in the top bar. Add sites (name + URL) to each category. Visible to all approved users.</p>
     <div class="inlineForm">
-      <input type="text" id="newCatName" placeholder="New category name..." maxlength="40">
+      <input type="text" class="panelInput" id="newCatName" placeholder="New category name..." maxlength="40">
       <button class="btn btn-primary" id="addCatBtn" style="padding:11px 18px;">ADD CATEGORY</button>
     </div>
     <div id="categoryManager"><p class="empty">// no categories yet</p></div>
@@ -522,6 +556,40 @@ el('signInForm').addEventListener('submit', async (e) => {
 // ---------- Sign out ----------
 el('signOutBtn').onclick = () => auth.signOut();
 
+// ---------- Delete own account ----------
+el('deleteAccountBtn').onclick = async () => {
+  const msg = el('deleteMsg');
+  msg.textContent = '';
+  msg.className = 'formMsg';
+  if(!currentUser || isOwner){
+    msg.textContent = 'Owner account cannot be deleted.';
+    msg.classList.add('err');
+    return;
+  }
+  const password = el('deletePassword').value;
+  if(!password){
+    msg.textContent = 'Enter your password to confirm.';
+    msg.classList.add('err');
+    return;
+  }
+  if(!confirm('Permanently delete your account? This cannot be undone.')) return;
+
+  try{
+    const credential = firebase.auth.EmailAuthProvider.credential(currentUser.email, password);
+    await currentUser.reauthenticateWithCredential(credential);
+    // delete Firestore profile first
+    await db.collection('users').doc(currentUser.uid).delete();
+    // then delete Auth account
+    await currentUser.delete();
+    msg.textContent = 'Account deleted.';
+    msg.classList.add('ok');
+    el('deletePassword').value = '';
+  }catch(err){
+    msg.textContent = err.message;
+    msg.classList.add('err');
+  }
+};
+
 // ---------- Auth state ----------
 auth.onAuthStateChanged(user => {
   currentUser = user;
@@ -586,6 +654,14 @@ function renderForStatus(){
   appSec.classList.add('show');
   el('dashEmail').textContent = email;
   el('dashRoleBadge').innerHTML = roleBadgeHtml(role);
+
+  // Account tab
+  el('accountEmail').textContent = email;
+  el('accountRoleBadge').innerHTML = roleBadgeHtml(role);
+  el('accountRoleSub').textContent = isOwner ? 'owner session — cannot be deleted' : 'your session';
+  el('deleteAccountBtn').disabled = isOwner;
+  el('deleteAccountBtn').style.opacity = isOwner ? '0.35' : '1';
+  el('deleteAccountBtn').style.cursor = isOwner ? 'not-allowed' : 'pointer';
 
   // Only owner sees the Owner Panel tab
   el('ownerTabBtn').style.display = isOwner ? 'inline-block' : 'none';
@@ -674,19 +750,16 @@ function renderCategoryTabsAndPanes(){
   tabs.querySelectorAll('button[data-pane^="cat-"]').forEach(b => b.remove());
   document.querySelectorAll('.appPane[id^="pane-cat-"]').forEach(p => p.remove());
 
-  const ownerBtn = el('ownerTabBtn');
+  // Insert category tabs before Account (and Owner) so order is:
+  // Dashboard | [categories...] | Account | Owner Panel
+  const accountBtn = el('accountTabBtn');
 
   categoriesCache.forEach(cat => {
     // Tab button
     const btn = document.createElement('button');
     btn.dataset.pane = 'cat-' + cat.id;
     btn.textContent = cat.name;
-    // Insert before owner tab if it exists, else at end
-    if(ownerBtn && ownerBtn.style.display !== 'none'){
-      tabs.insertBefore(btn, ownerBtn);
-    } else {
-      tabs.appendChild(btn);
-    }
+    tabs.insertBefore(btn, accountBtn);
 
     // Pane
     const pane = document.createElement('div');
@@ -705,7 +778,7 @@ function renderCategoryTabsAndPanes(){
           `).join('')
       }
     `;
-    el('appShell').insertBefore(pane, el('pane-owner'));
+    el('appShell').insertBefore(pane, el('pane-account'));
   });
 }
 
@@ -724,8 +797,8 @@ function renderCategoryManager(){
           <button class="miniBtn danger" data-action="delcat" data-catid="${cat.id}" style="float:right; margin-left:8px;">Delete Category</button>
         </h3>
         <div class="inlineForm" style="margin-top:8px;">
-          <input type="text" class="siteNameInput" placeholder="Site name" data-catid="${cat.id}">
-          <input type="url" class="siteUrlInput" placeholder="https://..." data-catid="${cat.id}">
+          <input type="text" class="panelInput siteNameInput" placeholder="Site name" data-catid="${cat.id}">
+          <input type="url" class="panelInput siteUrlInput" placeholder="https://..." data-catid="${cat.id}">
           <button class="miniBtn promote" data-action="addsite" data-catid="${cat.id}">Add Site</button>
         </div>
         ${sites.length === 0
