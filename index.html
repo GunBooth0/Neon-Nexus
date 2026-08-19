@@ -442,6 +442,8 @@
         <button type="submit" class="btn btn-primary submitBtn">SIGN IN</button>
       </form>
       <form id="signUpForm" style="display:none;">
+        <div class="field"><label>FIRST NAME</label><input type="text" id="signUpFirstName" required maxlength="40" autocomplete="given-name"></div>
+        <div class="field"><label>LAST NAME</label><input type="text" id="signUpLastName" required maxlength="40" autocomplete="family-name"></div>
         <div class="field"><label>EMAIL</label><input type="email" id="signUpEmail" required></div>
         <div class="field"><label>PASSWORD (min 6 chars)</label><input type="password" id="signUpPassword" required minlength="6"></div>
         <div class="formMsg" id="signUpMsg"></div>
@@ -521,14 +523,24 @@ function escapeHtml(str){
 el('signUpForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = el('signUpMsg'); msg.textContent = ''; msg.className = 'formMsg';
+  const firstName = el('signUpFirstName').value.trim();
+  const lastName = el('signUpLastName').value.trim();
   const email = el('signUpEmail').value.trim();
   const password = el('signUpPassword').value;
+  if(!firstName || !lastName){
+    msg.textContent = 'First and last name are required.';
+    msg.classList.add('err');
+    return;
+  }
   try{
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     const uid = cred.user.uid;
     const isOwnerAccount = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
     await db.collection('users').doc(uid).set({
       email,
+      firstName,
+      lastName,
+      displayName: firstName + ' ' + lastName,
       role: isOwnerAccount ? 'owner' : 'user',
       status: isOwnerAccount ? 'approved' : 'pending',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -539,6 +551,13 @@ el('signUpForm').addEventListener('submit', async (e) => {
     msg.textContent = err.message; msg.classList.add('err');
   }
 });
+
+function displayNameOf(u){
+  if(!u) return '';
+  if(u.displayName) return u.displayName;
+  if(u.firstName || u.lastName) return [u.firstName, u.lastName].filter(Boolean).join(' ');
+  return u.email || '';
+}
 
 // ---------- Sign in ----------
 el('signInForm').addEventListener('submit', async (e) => {
@@ -703,9 +722,10 @@ function subscribeAnnouncements(){
             const cancel = canCancel
               ? `<button class="cancelBtn" data-annid="${d.id}">Cancel</button>`
               : '';
+            const by = a.createdByName || a.createdBy || '';
             return `<div class="annCard">${escapeHtml(a.text)}
               <div class="meta">
-                <span>// ${when}${a.createdBy ? ' · ' + escapeHtml(a.createdBy) : ''}</span>
+                <span>// ${when}${by ? ' · ' + escapeHtml(by) : ''}</span>
                 ${cancel}
               </div>
             </div>`;
@@ -833,6 +853,7 @@ el('addCatBtn').onclick = async () => {
       order: maxOrder + 1,
       sites: [],
       createdBy: currentUser.email,
+      createdByName: displayNameOf(currentUserDoc) || currentUser.email,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     el('newCatName').value = '';
@@ -905,8 +926,12 @@ function subscribeStaffData(){
         ? '<p class="empty">// queue empty</p>'
         : snap.docs.map(d => {
             const u = d.data();
+            const name = displayNameOf(u);
             return `<div class="row">
-              <div class="who"><span class="email">${escapeHtml(u.email)}</span><span class="sub">uid: ${d.id}</span></div>
+              <div class="who">
+                <span class="email">${escapeHtml(name || u.email)}</span>
+                <span class="sub">${name ? escapeHtml(u.email) + ' · ' : ''}uid: ${d.id}</span>
+              </div>
               <div class="actions">
                 <button class="miniBtn approve" data-uid="${d.id}" data-action="approve">Approve</button>
                 <button class="miniBtn deny" data-uid="${d.id}" data-action="deny">Deny</button>
@@ -922,6 +947,7 @@ function subscribeStaffData(){
         : snap.docs.map(d => {
             const u = d.data();
             const isOwnerRow = u.role === 'owner';
+            const name = displayNameOf(u);
             let roleBtn = '';
             if(!isOwnerRow && u.status === 'approved'){
               if(u.role === 'admin'){
@@ -932,8 +958,8 @@ function subscribeStaffData(){
             }
             return `<div class="row">
               <div class="who">
-                <span class="email">${escapeHtml(u.email)}</span>
-                <span class="sub">${roleBadgeHtml(u.role)} · ${u.status}</span>
+                <span class="email">${escapeHtml(name || u.email)}</span>
+                <span class="sub">${name ? escapeHtml(u.email) + ' · ' : ''}${roleBadgeHtml(u.role)} · ${u.status}</span>
               </div>
               <div class="actions">${roleBtn}</div>
             </div>`;
@@ -950,6 +976,7 @@ function subscribeStaffData(){
       await db.collection('announcements').add({
         text,
         createdBy: currentUser.email,
+        createdByName: displayNameOf(currentUserDoc) || currentUser.email,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       });
       el('announceInput').value = '';
