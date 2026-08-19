@@ -32,7 +32,6 @@
     position:relative;
     overflow-x:hidden;
   }
-  /* ambient grid + scanlines */
   body::before{
     content:"";
     position:fixed; inset:0;
@@ -58,7 +57,6 @@
   }
   a{color:inherit;}
   ::selection{background:var(--magenta); color:#000;}
-
   /* ---------- NAV ---------- */
   nav{
     position:relative; z-index:5;
@@ -86,7 +84,6 @@
     letter-spacing:1px; transition:.15s;
   }
   #signOutBtn:hover{border-color:var(--danger); color:var(--danger);}
-
   /* ---------- HERO ---------- */
   header.hero{
     position:relative; z-index:5;
@@ -143,15 +140,12 @@
   .btn-primary:hover{background:#4df7ff; box-shadow:0 0 22px rgba(0,240,255,0.5);}
   .btn-ghost{border-color:var(--line); background:transparent; color:var(--text);}
   .btn-ghost:hover{border-color:var(--magenta); color:var(--magenta);}
-
-  /* status log strip */
   .logstrip{
     margin-top:26px; font-size:12px; color:var(--text-dim);
     display:flex; flex-direction:column; gap:6px;
     border-left:2px solid var(--line); padding-left:14px;
   }
   .logstrip span.ok{color:var(--cyan);}
-
   /* ---------- ANNOUNCEMENTS (public) ---------- */
   section.announcements{
     position:relative; z-index:5; padding:0 5vw 8vh;
@@ -167,9 +161,13 @@
     padding:16px 18px; margin-bottom:10px; font-size:13px; color:var(--text);
     border-left:2px solid var(--violet); position:relative;
   }
-  .annCard .meta{color:var(--text-dim); font-size:11px; margin-top:8px;}
+  .annCard .meta{color:var(--text-dim); font-size:11px; margin-top:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;}
+  .annCard .cancelBtn{
+    font-family:var(--font-mono); font-size:10px; letter-spacing:0.5px; padding:5px 10px; cursor:pointer;
+    border:1px solid var(--danger); background:transparent; color:var(--danger); text-transform:uppercase;
+  }
+  .annCard .cancelBtn:hover{background:rgba(255,56,96,0.12);}
   .empty{color:var(--text-dim); font-size:13px; font-style:normal;}
-
   /* ---------- MODAL (auth) ---------- */
   .overlay{
     position:fixed; inset:0; background:rgba(4,3,8,0.82); backdrop-filter:blur(3px);
@@ -203,16 +201,15 @@
   .tabRow button.active{background:var(--bg-panel-2); color:var(--cyan);}
   .field{margin-bottom:14px;}
   .field label{display:block; font-size:11px; color:var(--text-dim); margin-bottom:6px; letter-spacing:1px;}
-  .field input{
+  .field input, .field select{
     width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
     padding:11px 12px; font-family:var(--font-mono); font-size:13px;
   }
-  .field input:focus{outline:none; border-color:var(--cyan);}
+  .field input:focus, .field select:focus{outline:none; border-color:var(--cyan);}
   .formMsg{font-size:12px; margin:10px 0; min-height:16px;}
   .formMsg.err{color:var(--danger);}
   .formMsg.ok{color:var(--cyan);}
   .submitBtn{width:100%; margin-top:6px;}
-
   /* ---------- PENDING SCREEN ---------- */
   .pendingScreen{
     position:relative; z-index:5; padding:16vh 5vw; text-align:left; max-width:640px;
@@ -222,7 +219,6 @@
     margin-top:20px; line-height:1.8;
   }
   .pendingScreen.denied .code{border-color:var(--danger); background:rgba(255,56,96,0.06); color:var(--danger);}
-
   /* ---------- MAIN APP (post-approval) ---------- */
   .appShell{position:relative; z-index:5; padding:0 5vw 10vh; display:none;}
   .appShell.show{display:block;}
@@ -235,7 +231,6 @@
   .appTabs button.active{color:var(--text); border-bottom-color:var(--magenta);}
   .appPane{display:none;}
   .appPane.show{display:block;}
-
   .roleBadge{
     display:inline-block; font-size:10px; padding:3px 8px; letter-spacing:1px; border:1px solid;
   }
@@ -244,10 +239,8 @@
   .roleBadge.user{color:var(--text-dim); border-color:var(--line);}
   .roleBadge.pending{color:var(--amber); border-color:var(--amber);}
   .roleBadge.denied{color:var(--danger); border-color:var(--danger);}
-
   .grid2{display:grid; grid-template-columns:1fr 1fr; gap:22px;}
   @media (max-width:820px){.grid2{grid-template-columns:1fr;}}
-
   .row{
     display:flex; justify-content:space-between; align-items:center; gap:12px;
     border:1px solid var(--line); background:var(--bg-panel); padding:12px 14px; margin-bottom:8px; font-size:13px;
@@ -256,7 +249,7 @@
   .row .who{display:flex; flex-direction:column; gap:4px;}
   .row .who .email{color:var(--text);}
   .row .who .sub{font-size:11px; color:var(--text-dim);}
-  .row .actions{display:flex; gap:8px;}
+  .row .actions{display:flex; gap:8px; flex-wrap:wrap;}
   .miniBtn{
     font-family:var(--font-mono); font-size:11px; letter-spacing:0.5px; padding:7px 12px; cursor:pointer;
     border:1px solid var(--line); background:transparent; color:var(--text); text-transform:uppercase;
@@ -267,14 +260,33 @@
   .miniBtn.deny:hover{background:rgba(255,56,96,0.1);}
   .miniBtn.promote{border-color:var(--violet); color:var(--violet);}
   .miniBtn.promote:hover{background:rgba(139,92,246,0.1);}
+  .miniBtn.danger{border-color:var(--danger); color:var(--danger);}
+  .miniBtn.danger:hover{background:rgba(255,56,96,0.1);}
   .miniBtn:disabled{opacity:0.3; cursor:not-allowed;}
-
   textarea{
     width:100%; background:var(--bg); border:1px solid var(--line); color:var(--text);
     padding:12px; font-family:var(--font-mono); font-size:13px; min-height:80px; resize:vertical;
   }
   textarea:focus{outline:none; border-color:var(--cyan);}
-
+  /* Category / site cards */
+  .catCard{
+    border:1px solid var(--line); background:var(--bg-panel);
+    padding:16px 18px; margin-bottom:12px;
+  }
+  .catCard h3{
+    font-family:var(--font-display); font-size:14px; letter-spacing:1px; margin-bottom:10px;
+    color:var(--cyan);
+  }
+  .siteLink{
+    display:block; padding:8px 0; border-bottom:1px solid var(--line);
+    font-size:13px; color:var(--text); text-decoration:none;
+  }
+  .siteLink:last-child{border-bottom:none;}
+  .siteLink:hover{color:var(--magenta);}
+  .siteLink .url{font-size:11px; color:var(--text-dim); display:block; margin-top:2px;}
+  .inlineForm{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .inlineForm input{flex:1; min-width:140px;}
+  .inlineForm .btn{padding:11px 18px;}
   footer{
     position:relative; z-index:5; padding:26px 5vw; border-top:1px solid var(--line);
     color:var(--text-dim); font-size:11px; letter-spacing:1px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;
@@ -282,7 +294,6 @@
 </style>
 </head>
 <body>
-
 <nav>
   <div class="brand"><span class="dot"></span>NEON<span style="color:var(--text-dim)">://</span>NEXUS</div>
   <div class="navlinks">
@@ -321,14 +332,14 @@
   <div class="eyebrow" id="pendingEyebrow">// ACCESS REQUEST SUBMITTED</div>
   <h1 class="glitch" data-text="STANDBY" style="font-size:clamp(32px,6vw,64px);">STANDBY</h1>
   <p class="sub" id="pendingText">Your credentials are logged. An operator must approve this session before the nexus opens. This screen updates itself — leave it open, or come back any time.</p>
-  <div class="code" id="pendingCode">[STATUS: PENDING_APPROVAL]<br>[UID: —]<br>[WAITING FOR: OWNER OR ADMIN]</div>
+  <div class="code" id="pendingCode">[STATUS: PENDING_APPROVAL]<br>[UID: —]<br>[WAITING FOR: OWNER]</div>
 </section>
 
 <!-- MAIN APP -->
 <div class="appShell" id="appShell">
   <div class="appTabs" id="appTabs">
     <button class="active" data-pane="dashboard">Dashboard</button>
-    <button data-pane="admin" id="adminTabBtn" style="display:none;">Admin Panel</button>
+    <!-- Dynamic category tabs injected here -->
     <button data-pane="owner" id="ownerTabBtn" style="display:none;">Owner Panel</button>
   </div>
 
@@ -345,27 +356,35 @@
     <div id="dashAnnouncements"><p class="empty">// no signals broadcast yet</p></div>
   </div>
 
-  <div class="appPane" id="pane-admin">
+  <!-- Dynamic category panes injected here -->
+
+  <div class="appPane" id="pane-owner">
+    <div class="panelTitle">Owner Control — full registry &amp; tools</div>
+    <p class="sub" style="margin-bottom:20px;">Only the owner account can promote users to admin. Admins and the owner can approve/deny access, manage categories &amp; sites, and broadcast (or cancel) announcements.</p>
+
     <div class="grid2">
       <div>
         <div class="panelTitle">Pending Access Requests</div>
         <div id="pendingList"><p class="empty">// queue empty</p></div>
       </div>
       <div>
-        <div class="panelTitle">Role Management</div>
-        <div id="roleList"><p class="empty">// no users yet</p></div>
+        <div class="panelTitle">User Registry</div>
+        <div id="ownerUserList"><p class="empty">// no users yet</p></div>
       </div>
     </div>
-    <div class="panelTitle" style="margin-top:30px;">Post a Broadcast</div>
+
+    <div class="panelTitle" style="margin-top:34px;">Categories &amp; Sites</div>
+    <p class="sub" style="margin-bottom:12px;">Create categories that appear as tabs in the top bar. Add sites (name + URL) to each category. Visible to all approved users.</p>
+    <div class="inlineForm">
+      <input type="text" id="newCatName" placeholder="New category name..." maxlength="40">
+      <button class="btn btn-primary" id="addCatBtn" style="padding:11px 18px;">ADD CATEGORY</button>
+    </div>
+    <div id="categoryManager"><p class="empty">// no categories yet</p></div>
+
+    <div class="panelTitle" style="margin-top:34px;">Post a Broadcast</div>
     <textarea id="announceInput" placeholder="Type a message for the broadcast log..."></textarea>
     <button class="btn btn-primary" id="postAnnounceBtn" style="margin-top:10px;">BROADCAST</button>
-    <div id="adminAnnounceList" style="margin-top:20px;"></div>
-  </div>
-
-  <div class="appPane" id="pane-owner">
-    <div class="panelTitle">Owner Control — full user registry</div>
-    <p class="sub" style="margin-bottom:16px;">Only your account can see this panel. You can grant or revoke admin access for anyone here. Admins cannot touch this list.</p>
-    <div id="ownerUserList"><p class="empty">// no users yet</p></div>
+    <div id="ownerAnnounceList" style="margin-top:20px;"></div>
   </div>
 </div>
 
@@ -381,14 +400,12 @@
         <button class="active" id="tabSignIn">Sign In</button>
         <button id="tabSignUp">Request Access</button>
       </div>
-
       <form id="signInForm">
         <div class="field"><label>EMAIL</label><input type="email" id="signInEmail" required></div>
         <div class="field"><label>PASSWORD</label><input type="password" id="signInPassword" required></div>
         <div class="formMsg" id="signInMsg"></div>
         <button type="submit" class="btn btn-primary submitBtn">SIGN IN</button>
       </form>
-
       <form id="signUpForm" style="display:none;">
         <div class="field"><label>EMAIL</label><input type="email" id="signUpEmail" required></div>
         <div class="field"><label>PASSWORD (min 6 chars)</label><input type="password" id="signUpPassword" required minlength="6"></div>
@@ -411,7 +428,6 @@
 <script>
 /* =========================================================================
    1) PASTE YOUR FIREBASE CONFIG HERE
-      Firebase Console -> Project Settings -> General -> Your apps -> SDK setup
    ========================================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyB86FEjEuuO-vm_9YMEwCN5cKMa4XuULTY",
@@ -422,7 +438,6 @@ const firebaseConfig = {
   appId: "1:168571485561:web:9c64652b03648b1d9943a8",
   measurementId: "G-E1E09WRXQY"
 };
-
 /* =========================================================================
    2) YOUR OWNER EMAIL — only this exact email can ever hold the owner role
    ========================================================================= */
@@ -435,6 +450,8 @@ const db = firebase.firestore();
 let currentUser = null;
 let currentUserDoc = null; // {role, status, email}
 let userDocUnsub = null;
+let isStaff = false; // owner or admin
+let isOwner = false;
 
 const el = id => document.getElementById(id);
 const connTag = el('connTag');
@@ -446,14 +463,12 @@ function roleBadgeHtml(role){
   const cls = role in map ? role : 'user';
   return `<span class="roleBadge ${cls}">${map[cls]}</span>`;
 }
-
 function openModal(){ el('authOverlay').classList.add('show'); }
 function closeModal(){ el('authOverlay').classList.remove('show'); }
 el('heroCta').onclick = openModal;
 el('navSignInBtn').onclick = openModal;
 el('closeModal').onclick = closeModal;
 el('authOverlay').addEventListener('click', e => { if(e.target.id === 'authOverlay') closeModal(); });
-
 el('tabSignIn').onclick = () => {
   el('tabSignIn').classList.add('active'); el('tabSignUp').classList.remove('active');
   el('signInForm').style.display = 'block'; el('signUpForm').style.display = 'none';
@@ -463,7 +478,11 @@ el('tabSignUp').onclick = () => {
   el('signUpForm').style.display = 'block'; el('signInForm').style.display = 'none';
 };
 
-// ---------- Sign up (creates auth account + pending Firestore doc) ----------
+function escapeHtml(str){
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+
+// ---------- Sign up ----------
 el('signUpForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const msg = el('signUpMsg'); msg.textContent = ''; msg.className = 'formMsg';
@@ -472,16 +491,15 @@ el('signUpForm').addEventListener('submit', async (e) => {
   try{
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     const uid = cred.user.uid;
-    const isOwner = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
+    const isOwnerAccount = email.toLowerCase() === OWNER_EMAIL.toLowerCase();
     await db.collection('users').doc(uid).set({
       email,
-      role: isOwner ? 'owner' : 'user',
-      status: isOwner ? 'approved' : 'pending',
+      role: isOwnerAccount ? 'owner' : 'user',
+      status: isOwnerAccount ? 'approved' : 'pending',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     msg.textContent = 'Request submitted.'; msg.classList.add('ok');
     closeModal();
-    // onAuthStateChanged + snapshot listener below take it from here
   }catch(err){
     msg.textContent = err.message; msg.classList.add('err');
   }
@@ -508,7 +526,6 @@ el('signOutBtn').onclick = () => auth.signOut();
 auth.onAuthStateChanged(user => {
   currentUser = user;
   if(userDocUnsub){ userDocUnsub(); userDocUnsub = null; }
-
   if(!user){
     connTag.textContent = 'SYS: DISCONNECTED';
     footerStatus.textContent = 'disconnected';
@@ -517,17 +534,16 @@ auth.onAuthStateChanged(user => {
     el('heroSection').style.display = 'block';
     el('pendingScreen').style.display = 'none';
     el('appShell').classList.remove('show');
+    isStaff = false;
+    isOwner = false;
     return;
   }
-
   el('navSignInBtn').style.display = 'none';
   el('userBadge').classList.add('show');
   el('userEmailLabel').textContent = user.email;
   connTag.textContent = 'SYS: AUTHENTICATED';
   footerStatus.textContent = 'connected as ' + user.email;
 
-  // realtime listener on this user's own doc — this is what makes
-  // "approved" show up automatically without re-logging in
   userDocUnsub = db.collection('users').doc(user.uid).onSnapshot(snap => {
     if(!snap.exists){ return; }
     currentUserDoc = snap.data();
@@ -543,6 +559,9 @@ function renderForStatus(){
   const heroSec = el('heroSection');
   const pendingSec = el('pendingScreen');
   const appSec = el('appShell');
+
+  isOwner = role === 'owner';
+  isStaff = role === 'admin' || role === 'owner';
 
   if(status === 'pending'){
     heroSec.style.display = 'none'; appSec.classList.remove('show');
@@ -562,18 +581,21 @@ function renderForStatus(){
   }
 
   // approved
-  pendingSec.style.display = 'none'; heroSec.style.display = 'none';
+  pendingSec.style.display = 'none';
+  heroSec.style.display = 'none';
   appSec.classList.add('show');
   el('dashEmail').textContent = email;
   el('dashRoleBadge').innerHTML = roleBadgeHtml(role);
 
-  const isAdmin = role === 'admin' || role === 'owner';
-  const isOwner = role === 'owner';
-  el('adminTabBtn').style.display = isAdmin ? 'inline-block' : 'none';
+  // Only owner sees the Owner Panel tab
   el('ownerTabBtn').style.display = isOwner ? 'inline-block' : 'none';
 
-  if(isAdmin){ subscribeAdminData(); }
-  if(isOwner){ subscribeOwnerData(); }
+  if(isStaff){
+    subscribeStaffData();
+  }
+  // Everyone gets categories + announcements
+  subscribeCategories();
+  subscribeAnnouncements();
 }
 
 // ---------- Tabs ----------
@@ -582,33 +604,226 @@ el('appTabs').addEventListener('click', e => {
   document.querySelectorAll('#appTabs button').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.appPane').forEach(p => p.classList.remove('show'));
   e.target.classList.add('active');
-  el('pane-' + e.target.dataset.pane).classList.add('show');
+  const paneId = 'pane-' + e.target.dataset.pane;
+  const pane = el(paneId);
+  if(pane) pane.classList.add('show');
 });
 
-// ---------- Public + dashboard announcements ----------
-db.collection('announcements').orderBy('createdAt', 'desc').limit(20)
-  .onSnapshot(snap => {
-    const html = snap.empty
-      ? '<p class="empty">// no signals broadcast yet</p>'
-      : snap.docs.map(d => {
-          const a = d.data();
-          const when = a.createdAt ? a.createdAt.toDate().toLocaleString() : '...';
-          return `<div class="annCard">${escapeHtml(a.text)}<div class="meta">// ${when}</div></div>`;
-        }).join('');
-    el('publicAnnouncements').innerHTML = html;
-    el('dashAnnouncements').innerHTML = html;
-  }, err => { /* likely not-yet-configured rules; ignore in UI */ });
-
-function escapeHtml(str){
-  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+// ---------- Announcements (everyone) ----------
+let annUnsub = null;
+function subscribeAnnouncements(){
+  if(annUnsub) return;
+  annUnsub = db.collection('announcements')
+    .orderBy('createdAt', 'desc')
+    .limit(30)
+    .onSnapshot(snap => {
+      const canCancel = isStaff;
+      const html = snap.empty
+        ? '<p class="empty">// no signals broadcast yet</p>'
+        : snap.docs.map(d => {
+            const a = d.data();
+            const when = a.createdAt ? a.createdAt.toDate().toLocaleString() : '...';
+            const cancel = canCancel
+              ? `<button class="cancelBtn" data-annid="${d.id}">Cancel</button>`
+              : '';
+            return `<div class="annCard">${escapeHtml(a.text)}
+              <div class="meta">
+                <span>// ${when}${a.createdBy ? ' · ' + escapeHtml(a.createdBy) : ''}</span>
+                ${cancel}
+              </div>
+            </div>`;
+          }).join('');
+      el('publicAnnouncements').innerHTML = html;
+      el('dashAnnouncements').innerHTML = html;
+      if(el('ownerAnnounceList')) el('ownerAnnounceList').innerHTML = html;
+    }, err => { console.warn('announcements', err); });
 }
 
-// ---------- Admin: pending queue + role list + announcements ----------
-let adminSubscribed = false;
-function subscribeAdminData(){
-  if(adminSubscribed) return;
-  adminSubscribed = true;
+// Cancel announcement (staff only)
+document.body.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.cancelBtn');
+  if(!btn || !isStaff) return;
+  const id = btn.dataset.annid;
+  if(!id) return;
+  if(!confirm('Cancel this broadcast for everyone?')) return;
+  try{
+    await db.collection('announcements').doc(id).delete();
+  }catch(err){
+    alert(err.message);
+  }
+});
 
+// ---------- Categories + Sites ----------
+let catUnsub = null;
+let categoriesCache = [];
+
+function subscribeCategories(){
+  if(catUnsub) return;
+  catUnsub = db.collection('categories')
+    .orderBy('order', 'asc')
+    .onSnapshot(snap => {
+      categoriesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderCategoryTabsAndPanes();
+      if(isStaff) renderCategoryManager();
+    }, err => { console.warn('categories', err); });
+}
+
+function renderCategoryTabsAndPanes(){
+  const tabs = el('appTabs');
+  // Remove old dynamic category buttons & panes
+  tabs.querySelectorAll('button[data-pane^="cat-"]').forEach(b => b.remove());
+  document.querySelectorAll('.appPane[id^="pane-cat-"]').forEach(p => p.remove());
+
+  const ownerBtn = el('ownerTabBtn');
+
+  categoriesCache.forEach(cat => {
+    // Tab button
+    const btn = document.createElement('button');
+    btn.dataset.pane = 'cat-' + cat.id;
+    btn.textContent = cat.name;
+    // Insert before owner tab if it exists, else at end
+    if(ownerBtn && ownerBtn.style.display !== 'none'){
+      tabs.insertBefore(btn, ownerBtn);
+    } else {
+      tabs.appendChild(btn);
+    }
+
+    // Pane
+    const pane = document.createElement('div');
+    pane.className = 'appPane';
+    pane.id = 'pane-cat-' + cat.id;
+    const sites = Array.isArray(cat.sites) ? cat.sites : [];
+    pane.innerHTML = `
+      <div class="panelTitle">${escapeHtml(cat.name)}</div>
+      ${sites.length === 0
+        ? '<p class="empty">// no sites in this category yet</p>'
+        : sites.map(s => `
+            <a class="siteLink" href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer">
+              ${escapeHtml(s.name)}
+              <span class="url">${escapeHtml(s.url)}</span>
+            </a>
+          `).join('')
+      }
+    `;
+    el('appShell').insertBefore(pane, el('pane-owner'));
+  });
+}
+
+function renderCategoryManager(){
+  const box = el('categoryManager');
+  if(!box) return;
+  if(categoriesCache.length === 0){
+    box.innerHTML = '<p class="empty">// no categories yet</p>';
+    return;
+  }
+  box.innerHTML = categoriesCache.map(cat => {
+    const sites = Array.isArray(cat.sites) ? cat.sites : [];
+    return `
+      <div class="catCard" data-catid="${cat.id}">
+        <h3>${escapeHtml(cat.name)}
+          <button class="miniBtn danger" data-action="delcat" data-catid="${cat.id}" style="float:right; margin-left:8px;">Delete Category</button>
+        </h3>
+        <div class="inlineForm" style="margin-top:8px;">
+          <input type="text" class="siteNameInput" placeholder="Site name" data-catid="${cat.id}">
+          <input type="url" class="siteUrlInput" placeholder="https://..." data-catid="${cat.id}">
+          <button class="miniBtn promote" data-action="addsite" data-catid="${cat.id}">Add Site</button>
+        </div>
+        ${sites.length === 0
+          ? '<p class="empty" style="margin-top:8px;">// empty</p>'
+          : sites.map((s, idx) => `
+              <div class="row" style="margin-top:6px;">
+                <div class="who">
+                  <span class="email">${escapeHtml(s.name)}</span>
+                  <span class="sub">${escapeHtml(s.url)}</span>
+                </div>
+                <div class="actions">
+                  <button class="miniBtn danger" data-action="delsite" data-catid="${cat.id}" data-idx="${idx}">Remove</button>
+                </div>
+              </div>
+            `).join('')
+        }
+      </div>
+    `;
+  }).join('');
+}
+
+// Add category
+el('addCatBtn').onclick = async () => {
+  if(!isStaff) return;
+  const name = el('newCatName').value.trim();
+  if(!name) return;
+  try{
+    const maxOrder = categoriesCache.reduce((m, c) => Math.max(m, c.order || 0), 0);
+    await db.collection('categories').add({
+      name,
+      order: maxOrder + 1,
+      sites: [],
+      createdBy: currentUser.email,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    el('newCatName').value = '';
+  }catch(err){
+    alert(err.message);
+  }
+};
+
+// Category / site actions
+document.body.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-action]');
+  if(!btn || !isStaff) return;
+  const action = btn.dataset.action;
+  const catId = btn.dataset.catid;
+
+  if(action === 'delcat'){
+    if(!confirm('Delete this category and all its sites?')) return;
+    try{ await db.collection('categories').doc(catId).delete(); }
+    catch(err){ alert(err.message); }
+  }
+
+  if(action === 'addsite'){
+    const card = btn.closest('.catCard');
+    const nameIn = card.querySelector('.siteNameInput');
+    const urlIn = card.querySelector('.siteUrlInput');
+    const name = nameIn.value.trim();
+    let url = urlIn.value.trim();
+    if(!name || !url) return;
+    if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    try{
+      const ref = db.collection('categories').doc(catId);
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        if(!snap.exists) throw new Error('Category gone');
+        const sites = Array.isArray(snap.data().sites) ? [...snap.data().sites] : [];
+        sites.push({ name, url });
+        tx.update(ref, { sites });
+      });
+      nameIn.value = '';
+      urlIn.value = '';
+    }catch(err){ alert(err.message); }
+  }
+
+  if(action === 'delsite'){
+    const idx = parseInt(btn.dataset.idx, 10);
+    try{
+      const ref = db.collection('categories').doc(catId);
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(ref);
+        if(!snap.exists) throw new Error('Category gone');
+        const sites = Array.isArray(snap.data().sites) ? [...snap.data().sites] : [];
+        sites.splice(idx, 1);
+        tx.update(ref, { sites });
+      });
+    }catch(err){ alert(err.message); }
+  }
+});
+
+// ---------- Staff data (Owner panel content) ----------
+let staffSubscribed = false;
+function subscribeStaffData(){
+  if(staffSubscribed) return;
+  staffSubscribed = true;
+
+  // Pending requests (owner + admin can approve/deny)
   db.collection('users').where('status','==','pending').onSnapshot(snap => {
     el('pendingList').innerHTML = snap.empty
       ? '<p class="empty">// queue empty</p>'
@@ -624,70 +839,65 @@ function subscribeAdminData(){
         }).join('');
   });
 
-  db.collection('users').where('status','==','approved').onSnapshot(snap => {
-    el('roleList').innerHTML = snap.empty
-      ? '<p class="empty">// no users yet</p>'
-      : snap.docs.map(d => {
-          const u = d.data();
-          const isOwnerRow = u.role === 'owner';
-          const nextRole = u.role === 'admin' ? 'user' : 'admin';
-          const label = u.role === 'admin' ? 'Demote' : (u.role === 'user' ? 'Promote' : '');
-          return `<div class="row">
-            <div class="who"><span class="email">${escapeHtml(u.email)}</span><span class="sub">${roleBadgeHtml(u.role)}</span></div>
-            <div class="actions">
-              ${isOwnerRow ? '' : `<button class="miniBtn promote" data-uid="${d.id}" data-role="${nextRole}" ${label?'':'disabled'}>${label}</button>`}
-            </div>
-          </div>`;
-        }).join('');
-  });
-
-  el('postAnnounceBtn').onclick = async () => {
-    const text = el('announceInput').value.trim();
-    if(!text) return;
-    await db.collection('announcements').add({
-      text, createdBy: currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    el('announceInput').value = '';
-  };
-
-  document.body.addEventListener('click', handleAdminActions);
-}
-
-async function handleAdminActions(e){
-  const btn = e.target.closest('.miniBtn');
-  if(!btn) return;
-  const uid = btn.dataset.uid;
-  if(!uid) return;
-  if(btn.dataset.action === 'approve'){
-    await db.collection('users').doc(uid).update({ status: 'approved' });
-  } else if(btn.dataset.action === 'deny'){
-    await db.collection('users').doc(uid).update({ status: 'denied' });
-  } else if(btn.dataset.role){
-    await db.collection('users').doc(uid).update({ role: btn.dataset.role });
-  }
-}
-
-// ---------- Owner: full registry, grant/revoke admin ----------
-let ownerSubscribed = false;
-function subscribeOwnerData(){
-  if(ownerSubscribed) return;
-  ownerSubscribed = true;
-
+  // Full user registry
   db.collection('users').onSnapshot(snap => {
     el('ownerUserList').innerHTML = snap.empty
       ? '<p class="empty">// no users yet</p>'
       : snap.docs.map(d => {
           const u = d.data();
           const isOwnerRow = u.role === 'owner';
-          const nextRole = u.role === 'admin' ? 'user' : 'admin';
-          const label = u.role === 'admin' ? 'Revoke Admin' : (u.role === 'user' ? 'Grant Admin' : '');
+          // Only the real owner can promote/demote admins
+          let roleBtn = '';
+          if(isOwner && !isOwnerRow && u.status === 'approved'){
+            if(u.role === 'admin'){
+              roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="user">Revoke Admin</button>`;
+            } else if(u.role === 'user'){
+              roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="admin">Grant Admin</button>`;
+            }
+          }
           return `<div class="row">
-            <div class="who"><span class="email">${escapeHtml(u.email)}</span><span class="sub">${roleBadgeHtml(u.role)} · ${u.status}</span></div>
-            <div class="actions">
-              ${isOwnerRow || u.status !== 'approved' ? '' : `<button class="miniBtn promote" data-uid="${d.id}" data-role="${nextRole}">${label}</button>`}
+            <div class="who">
+              <span class="email">${escapeHtml(u.email)}</span>
+              <span class="sub">${roleBadgeHtml(u.role)} · ${u.status}</span>
             </div>
+            <div class="actions">${roleBtn}</div>
           </div>`;
         }).join('');
+  });
+
+  // Broadcast button
+  el('postAnnounceBtn').onclick = async () => {
+    if(!isStaff) return;
+    const text = el('announceInput').value.trim();
+    if(!text) return;
+    try{
+      await db.collection('announcements').add({
+        text,
+        createdBy: currentUser.email,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      el('announceInput').value = '';
+    }catch(err){ alert(err.message); }
+  };
+
+  // Approve / deny / role change
+  document.body.addEventListener('click', async (e) => {
+    const btn = e.target.closest('.miniBtn');
+    if(!btn) return;
+    const uid = btn.dataset.uid;
+    if(!uid) return;
+
+    if(btn.dataset.action === 'approve'){
+      if(!isStaff) return;
+      await db.collection('users').doc(uid).update({ status: 'approved' });
+    } else if(btn.dataset.action === 'deny'){
+      if(!isStaff) return;
+      await db.collection('users').doc(uid).update({ status: 'denied' });
+    } else if(btn.dataset.role){
+      // Only owner can change roles
+      if(!isOwner) return;
+      await db.collection('users').doc(uid).update({ role: btn.dataset.role });
+    }
   });
 }
 </script>
