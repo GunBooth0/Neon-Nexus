@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NEON://NEXUS</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2308070d'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%2300f0ff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%23ff2ec4'/%3E%3Cline x1='32' y1='8' x2='32' y2='14' stroke='%2300f0ff' stroke-width='2'/%3E%3Cline x1='32' y1='50' x2='32' y2='56' stroke='%2300f0ff' stroke-width='2'/%3E%3Cline x1='8' y1='32' x2='14' y2='32' stroke='%2300f0ff' stroke-width='2'/%3E%3Cline x1='50' y1='32' x2='56' y2='32' stroke='%2300f0ff' stroke-width='2'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -394,7 +395,7 @@
 
   <div class="appPane" id="pane-owner">
     <div class="panelTitle">Owner Control — full registry &amp; tools</div>
-    <p class="sub" style="margin-bottom:20px;">Only the owner account can promote users to admin. Admins and the owner can approve/deny access, manage categories &amp; sites, and broadcast (or cancel) announcements.</p>
+    <p class="sub" style="margin-bottom:20px;">Only you (the owner) can approve or deny access requests and promote users to admin. Admins can still manage categories, sites, and broadcasts from tools available to staff — but this panel is owner-only.</p>
 
     <div class="grid2">
       <div>
@@ -636,7 +637,7 @@ function renderForStatus(){
     pendingSec.style.display = 'block'; pendingSec.classList.remove('denied');
     el('pendingEyebrow').textContent = '// ACCESS REQUEST SUBMITTED';
     el('pendingText').textContent = "Your credentials are logged. An operator must approve this session before the nexus opens. This screen updates itself — leave it open, or come back any time.";
-    el('pendingCode').innerHTML = `[STATUS: PENDING_APPROVAL]<br>[UID: ${currentUser.uid}]<br>[WAITING FOR: OWNER OR ADMIN]`;
+    el('pendingCode').innerHTML = `[STATUS: PENDING_APPROVAL]<br>[UID: ${currentUser.uid}]<br>[WAITING FOR: OWNER]`;
     return;
   }
   if(status === 'denied'){
@@ -890,55 +891,57 @@ document.body.addEventListener('click', async (e) => {
   }
 });
 
-// ---------- Staff data (Owner panel content) ----------
+// ---------- Owner panel data (owner-only: pending queue, registry, role changes)
+// Staff (admin) still get categories/announcements via isStaff checks elsewhere.
 let staffSubscribed = false;
 function subscribeStaffData(){
   if(staffSubscribed) return;
   staffSubscribed = true;
 
-  // Pending requests (owner + admin can approve/deny)
-  db.collection('users').where('status','==','pending').onSnapshot(snap => {
-    el('pendingList').innerHTML = snap.empty
-      ? '<p class="empty">// queue empty</p>'
-      : snap.docs.map(d => {
-          const u = d.data();
-          return `<div class="row">
-            <div class="who"><span class="email">${escapeHtml(u.email)}</span><span class="sub">uid: ${d.id}</span></div>
-            <div class="actions">
-              <button class="miniBtn approve" data-uid="${d.id}" data-action="approve">Approve</button>
-              <button class="miniBtn deny" data-uid="${d.id}" data-action="deny">Deny</button>
-            </div>
-          </div>`;
-        }).join('');
-  });
+  // Pending requests — owner only (this panel is owner-only)
+  if(isOwner){
+    db.collection('users').where('status','==','pending').onSnapshot(snap => {
+      el('pendingList').innerHTML = snap.empty
+        ? '<p class="empty">// queue empty</p>'
+        : snap.docs.map(d => {
+            const u = d.data();
+            return `<div class="row">
+              <div class="who"><span class="email">${escapeHtml(u.email)}</span><span class="sub">uid: ${d.id}</span></div>
+              <div class="actions">
+                <button class="miniBtn approve" data-uid="${d.id}" data-action="approve">Approve</button>
+                <button class="miniBtn deny" data-uid="${d.id}" data-action="deny">Deny</button>
+              </div>
+            </div>`;
+          }).join('');
+    });
 
-  // Full user registry
-  db.collection('users').onSnapshot(snap => {
-    el('ownerUserList').innerHTML = snap.empty
-      ? '<p class="empty">// no users yet</p>'
-      : snap.docs.map(d => {
-          const u = d.data();
-          const isOwnerRow = u.role === 'owner';
-          // Only the real owner can promote/demote admins
-          let roleBtn = '';
-          if(isOwner && !isOwnerRow && u.status === 'approved'){
-            if(u.role === 'admin'){
-              roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="user">Revoke Admin</button>`;
-            } else if(u.role === 'user'){
-              roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="admin">Grant Admin</button>`;
+    // Full user registry
+    db.collection('users').onSnapshot(snap => {
+      el('ownerUserList').innerHTML = snap.empty
+        ? '<p class="empty">// no users yet</p>'
+        : snap.docs.map(d => {
+            const u = d.data();
+            const isOwnerRow = u.role === 'owner';
+            let roleBtn = '';
+            if(!isOwnerRow && u.status === 'approved'){
+              if(u.role === 'admin'){
+                roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="user">Revoke Admin</button>`;
+              } else if(u.role === 'user'){
+                roleBtn = `<button class="miniBtn promote" data-uid="${d.id}" data-role="admin">Grant Admin</button>`;
+              }
             }
-          }
-          return `<div class="row">
-            <div class="who">
-              <span class="email">${escapeHtml(u.email)}</span>
-              <span class="sub">${roleBadgeHtml(u.role)} · ${u.status}</span>
-            </div>
-            <div class="actions">${roleBtn}</div>
-          </div>`;
-        }).join('');
-  });
+            return `<div class="row">
+              <div class="who">
+                <span class="email">${escapeHtml(u.email)}</span>
+                <span class="sub">${roleBadgeHtml(u.role)} · ${u.status}</span>
+              </div>
+              <div class="actions">${roleBtn}</div>
+            </div>`;
+          }).join('');
+    });
+  }
 
-  // Broadcast button
+  // Broadcast button (owner panel; staff can also post if they had a UI — owner has it here)
   el('postAnnounceBtn').onclick = async () => {
     if(!isStaff) return;
     const text = el('announceInput').value.trim();
@@ -953,7 +956,7 @@ function subscribeStaffData(){
     }catch(err){ alert(err.message); }
   };
 
-  // Approve / deny / role change
+  // Approve / deny / role change — owner only
   document.body.addEventListener('click', async (e) => {
     const btn = e.target.closest('.miniBtn');
     if(!btn) return;
@@ -961,13 +964,12 @@ function subscribeStaffData(){
     if(!uid) return;
 
     if(btn.dataset.action === 'approve'){
-      if(!isStaff) return;
+      if(!isOwner) return;
       await db.collection('users').doc(uid).update({ status: 'approved' });
     } else if(btn.dataset.action === 'deny'){
-      if(!isStaff) return;
+      if(!isOwner) return;
       await db.collection('users').doc(uid).update({ status: 'denied' });
     } else if(btn.dataset.role){
-      // Only owner can change roles
       if(!isOwner) return;
       await db.collection('users').doc(uid).update({ role: btn.dataset.role });
     }
