@@ -782,28 +782,52 @@ document.body.addEventListener('click', async (e) => {
   catch(err){ alert(err.message); }
 });
 
-// Force refresh (staff can push; everyone sees it)
+// Force refresh — shows once per push; after user refreshes it stays gone
+// until owner pushes again (tracked via token in localStorage)
+const FORCE_REFRESH_KEY = 'neonNexus_forceRefreshAck';
 let forceRefreshUnsub = null;
+let currentForceToken = null;
+
 function subscribeForceRefresh(){
   if(forceRefreshUnsub) return;
   forceRefreshUnsub = db.collection('system').doc('forceRefresh')
     .onSnapshot(snap => {
       const overlay = el('forceRefreshOverlay');
       if(!snap.exists || !snap.data().active){
+        currentForceToken = null;
         overlay.classList.remove('show');
         return;
       }
       const data = snap.data();
+      // Unique token for this push (fallback if no timestamp yet)
+      const token = data.token ||
+        (data.pushedAt && data.pushedAt.toMillis ? String(data.pushedAt.toMillis()) : null) ||
+        (data.pushedAt && data.pushedAt.seconds ? String(data.pushedAt.seconds) : null) ||
+        'active';
+      currentForceToken = token;
+
+      // Already refreshed for this push → don't show again
+      try{
+        if(localStorage.getItem(FORCE_REFRESH_KEY) === token){
+          overlay.classList.remove('show');
+          return;
+        }
+      }catch(e){ /* private mode etc. */ }
+
       el('forceRefreshText').textContent = data.message || 'Please refresh this page to continue.';
       overlay.classList.add('show');
     }, err => console.warn(err));
 }
-// Start listening as soon as page loads (even before login)
 subscribeForceRefresh();
 
-el('forceRefreshReloadBtn').onclick = () => location.reload();
+el('forceRefreshReloadBtn').onclick = () => {
+  // Mark this push as acknowledged before reload so it won't loop
+  if(currentForceToken){
+    try{ localStorage.setItem(FORCE_REFRESH_KEY, currentForceToken); }catch(e){}
+  }
+  location.reload();
+};
 
-// Prevent closing overlay by keyboard/click outside
 el('forceRefreshOverlay').addEventListener('click', e => {
   e.stopPropagation();
 });
@@ -1013,8 +1037,11 @@ function subscribeStaffData(){
     const message = el('forceRefreshMsg').value.trim() || 'Please refresh this page to continue.';
     if(!confirm('Push force-refresh to all users?')) return;
     try{
+      // New token each push so users who already refreshed get hit again
+      const token = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 9);
       await db.collection('system').doc('forceRefresh').set({
         active: true,
+        token,
         message,
         pushedBy: currentUser.email,
         pushedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -1027,6 +1054,7 @@ function subscribeStaffData(){
     try{
       await db.collection('system').doc('forceRefresh').set({
         active: false,
+        token: '',
         message: '',
         clearedBy: currentUser.email,
         clearedAt: firebase.firestore.FieldValue.serverTimestamp()
