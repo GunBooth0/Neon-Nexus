@@ -682,29 +682,44 @@ function subscribeAnnouncements(){
   if(annUnsub) return;
   annUnsub = db.collection('announcements').orderBy('createdAt', 'desc').limit(30)
     .onSnapshot(snap => {
-      const canCancel = isStaff;
-      const html = snap.empty
+      // Public / home: no remove buttons
+      const publicHtml = snap.empty
         ? '<p class="empty">No announcements yet</p>'
         : snap.docs.map(d => {
             const a = d.data();
             const when = a.createdAt ? a.createdAt.toDate().toLocaleString() : '…';
             const by = a.createdByName || a.createdBy || '';
-            const cancel = canCancel
-              ? '<button class="miniBtn danger cancelBtn" data-annid="' + d.id + '">Remove</button>'
-              : '';
             return '<div class="annCard">' + escapeHtml(a.text) +
               '<div class="meta"><span>' + escapeHtml(when) + (by ? ' · ' + escapeHtml(by) : '') +
-              '</span>' + cancel + '</div></div>';
+              '</span></div></div>';
           }).join('');
-      el('publicAnnouncements').innerHTML = html;
-      el('dashAnnouncements').innerHTML = html;
-      if(el('ownerAnnounceList')) el('ownerAnnounceList').innerHTML = html;
+      el('publicAnnouncements').innerHTML = publicHtml;
+      el('dashAnnouncements').innerHTML = publicHtml;
+
+      // Owner panel only: remove buttons (owner only)
+      if(el('ownerAnnounceList')){
+        if(!isOwner){
+          el('ownerAnnounceList').innerHTML = publicHtml;
+        } else {
+          el('ownerAnnounceList').innerHTML = snap.empty
+            ? '<p class="empty">No announcements yet</p>'
+            : snap.docs.map(d => {
+                const a = d.data();
+                const when = a.createdAt ? a.createdAt.toDate().toLocaleString() : '…';
+                const by = a.createdByName || a.createdBy || '';
+                return '<div class="annCard">' + escapeHtml(a.text) +
+                  '<div class="meta"><span>' + escapeHtml(when) + (by ? ' · ' + escapeHtml(by) : '') +
+                  '</span><button class="miniBtn danger cancelBtn" data-annid="' + d.id +
+                  '">Remove</button></div></div>';
+              }).join('');
+        }
+      }
     }, err => console.warn(err));
 }
 
 document.body.addEventListener('click', async (e) => {
   const btn = e.target.closest('.cancelBtn');
-  if(!btn || !isStaff) return;
+  if(!btn || !isOwner) return;
   const id = btn.dataset.annid;
   if(!id || !confirm('Remove this announcement?')) return;
   try{ await db.collection('announcements').doc(id).delete(); }
