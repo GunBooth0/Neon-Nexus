@@ -74,6 +74,11 @@
     width:8px; height:8px; background:var(--cyan);
     box-shadow:0 0 8px var(--cyan); animation:blink 1.6s infinite steps(1);
   }
+  .byline{
+    font-family:var(--font-mono); font-weight:400;
+    font-size:11px; letter-spacing:1px; color:var(--text-dim);
+    margin-left:4px; text-transform:none;
+  }
   @keyframes blink{50%{opacity:0.15;}}
   .navlinks{display:flex; align-items:center; gap:20px; font-size:13px; color:var(--text-dim);}
   .navlinks .tag{
@@ -340,7 +345,7 @@
 </head>
 <body>
 <nav>
-  <div class="brand"><span class="dot"></span>NEON NEXUS</div>
+  <div class="brand"><span class="dot"></span>NEON NEXUS<span class="byline">By: Gunnar Booth</span></div>
   <div class="navlinks">
     <span class="tag" id="connTag">OFFLINE</span>
     <div id="userBadge">
@@ -376,7 +381,7 @@
   <div class="appTabs" id="appTabs">
     <button class="active" data-pane="dashboard">Home</button>
     <button data-pane="account" id="accountTabBtn">Account</button>
-    <button data-pane="owner" id="ownerTabBtn" style="display:none;">Owner</button>
+    <button data-pane="owner" id="ownerTabBtn" style="display:none;">Admin</button>
   </div>
 
   <div class="appPane show" id="pane-dashboard">
@@ -410,10 +415,10 @@
   </div>
 
   <div class="appPane" id="pane-owner">
-    <div class="panelTitle">Owner</div>
-    <p class="sub" style="margin-bottom:18px;">Approve requests, manage users, categories, and announcements.</p>
+    <div class="panelTitle" id="ownerPaneTitle">Admin</div>
+    <p class="sub" style="margin-bottom:18px;" id="ownerPaneSub">Manage categories and announcements.</p>
 
-    <div class="grid2">
+    <div class="grid2" id="ownerOnlyUsers" style="display:none;">
       <div>
         <div class="panelTitle">Pending</div>
         <div id="pendingList"><p class="empty">None</p></div>
@@ -437,12 +442,14 @@
     <button class="btn btn-primary" id="postAnnounceBtn" style="margin-top:10px;">POST</button>
     <div id="ownerAnnounceList" style="margin-top:16px;"></div>
 
-    <div class="panelTitle" style="margin-top:30px;">Force refresh</div>
-    <p class="sub" style="margin-bottom:10px;">Push a full-screen message that blocks the site until the user refreshes.</p>
-    <input type="text" class="panelInput" id="forceRefreshMsg" placeholder="Optional message (e.g. Site update — please refresh)">
-    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-      <button class="btn btn-primary" id="pushForceRefreshBtn">PUSH REFRESH</button>
-      <button class="btn btn-ghost" id="clearForceRefreshBtn">CLEAR</button>
+    <div id="ownerOnlyForceRefresh" style="display:none;">
+      <div class="panelTitle" style="margin-top:30px;">Force refresh</div>
+      <p class="sub" style="margin-bottom:10px;">Push a full-screen message that blocks the site until the user refreshes.</p>
+      <input type="text" class="panelInput" id="forceRefreshMsg" placeholder="Optional message (e.g. Site update — please refresh)">
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+        <button class="btn btn-primary" id="pushForceRefreshBtn">PUSH REFRESH</button>
+        <button class="btn btn-ghost" id="clearForceRefreshBtn">CLEAR</button>
+      </div>
     </div>
   </div>
 </div>
@@ -462,7 +469,7 @@
 <div class="overlay" id="authOverlay">
   <div class="term">
     <div class="termHead">
-      <span>Sign in</span>
+      <span>Sign in <span class="byline">By: Gunnar Booth</span></span>
       <button type="button" class="close" id="closeModal">&times;</button>
     </div>
     <div class="termBody">
@@ -706,7 +713,14 @@ function renderForStatus(){
   el('accountRoleBadge').innerHTML = roleBadgeHtml(role);
   el('accountRoleSub').textContent = isOwner ? 'Owner — cannot be deleted' : 'Your account';
   el('deleteAccountBtn').disabled = isOwner;
-  el('ownerTabBtn').style.display = isOwner ? 'inline-block' : 'none';
+  el('ownerTabBtn').style.display = isStaff ? 'inline-block' : 'none';
+  el('ownerTabBtn').textContent = isOwner ? 'Owner' : 'Admin';
+  el('ownerPaneTitle').textContent = isOwner ? 'Owner' : 'Admin';
+  el('ownerPaneSub').textContent = isOwner
+    ? 'Approve requests, manage users, categories, and announcements.'
+    : 'Manage categories and announcements.';
+  el('ownerOnlyUsers').style.display = isOwner ? 'grid' : 'none';
+  el('ownerOnlyForceRefresh').style.display = isOwner ? 'block' : 'none';
 
   if(isStaff) subscribeStaffData();
   subscribeCategories();
