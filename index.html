@@ -725,6 +725,9 @@ function renderForStatus(){
   if(isStaff) subscribeStaffData();
   subscribeCategories();
   subscribeAnnouncements();
+  // Ensure category manager is painted immediately when staff status is known
+  // (covers case where categories snapshot already ran before isStaff was true)
+  if(isStaff && categoriesCache.length) renderCategoryManager();
 }
 
 el('appTabs').addEventListener('click', e => {
@@ -861,6 +864,7 @@ function subscribeCategories(){
     .onSnapshot(snap => {
       categoriesCache = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
       renderCategoryTabsAndPanes();
+      // Always refresh manager for any staff (owner or admin) so adds/edits appear live
       if(isStaff) renderCategoryManager();
     }, err => console.warn(err));
 }
@@ -924,16 +928,29 @@ el('addCatBtn').onclick = async () => {
   if(!isStaff) return;
   const name = el('newCatName').value.trim();
   if(!name) return;
+  const btn = el('addCatBtn');
+  btn.disabled = true;
   try{
     const maxOrder = categoriesCache.reduce((m, c) => Math.max(m, c.order || 0), 0);
-    await db.collection('categories').add({
+    const docRef = await db.collection('categories').add({
       name, order: maxOrder + 1, sites: [],
       createdBy: currentUser.email,
       createdByName: displayNameOf(currentUserDoc) || currentUser.email,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     el('newCatName').value = '';
+    // Optimistic local update so admin/owner sees the new category instantly
+    // (onSnapshot will reconcile for everyone shortly)
+    categoriesCache.push({
+      id: docRef.id, name, order: maxOrder + 1, sites: [],
+      createdBy: currentUser.email,
+      createdByName: displayNameOf(currentUserDoc) || currentUser.email
+    });
+    categoriesCache.sort((a, b) => (a.order || 0) - (b.order || 0));
+    renderCategoryTabsAndPanes();
+    if(isStaff) renderCategoryManager();
   }catch(err){ alert(err.message); }
+  finally{ btn.disabled = false; }
 };
 
 document.body.addEventListener('click', async (e) => {
@@ -943,8 +960,14 @@ document.body.addEventListener('click', async (e) => {
   const catId = btn.dataset.catid;
   if(action === 'delcat'){
     if(!confirm('Delete this category?')) return;
-    try{ await db.collection('categories').doc(catId).delete(); }
-    catch(err){ alert(err.message); }
+    btn.disabled = true;
+    try{
+      await db.collection('categories').doc(catId).delete();
+      // Optimistic remove for instant feedback
+      categoriesCache = categoriesCache.filter(c => c.id !== catId);
+      renderCategoryTabsAndPanes();
+      if(isStaff) renderCategoryManager();
+    }catch(err){ alert(err.message); btn.disabled = false; }
   }
   if(action === 'addsite'){
     const card = btn.closest('.catCard');
@@ -954,6 +977,7 @@ document.body.addEventListener('click', async (e) => {
     let url = urlIn.value.trim();
     if(!name || !url) return;
     if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    btn.disabled = true;
     try{
       const ref = db.collection('categories').doc(catId);
       await db.runTransaction(async (tx) => {
@@ -964,10 +988,20 @@ document.body.addEventListener('click', async (e) => {
         tx.update(ref, { sites });
       });
       nameIn.value = ''; urlIn.value = '';
+      // Optimistic local update so the new link appears without refresh
+      const cat = categoriesCache.find(c => c.id === catId);
+      if(cat){
+        if(!Array.isArray(cat.sites)) cat.sites = [];
+        cat.sites.push({ name, url });
+        renderCategoryTabsAndPanes();
+        if(isStaff) renderCategoryManager();
+      }
     }catch(err){ alert(err.message); }
+    finally{ btn.disabled = false; }
   }
   if(action === 'delsite'){
     const idx = parseInt(btn.dataset.idx, 10);
+    btn.disabled = true;
     try{
       const ref = db.collection('categories').doc(catId);
       await db.runTransaction(async (tx) => {
@@ -977,7 +1011,15 @@ document.body.addEventListener('click', async (e) => {
         sites.splice(idx, 1);
         tx.update(ref, { sites });
       });
+      // Optimistic local update
+      const cat = categoriesCache.find(c => c.id === catId);
+      if(cat && Array.isArray(cat.sites)){
+        cat.sites.splice(idx, 1);
+        renderCategoryTabsAndPanes();
+        if(isStaff) renderCategoryManager();
+      }
     }catch(err){ alert(err.message); }
+    finally{ btn.disabled = false; }
   }
 });
 
